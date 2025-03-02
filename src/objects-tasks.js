@@ -123,8 +123,15 @@ function makeImmutable(obj) {
  *    makeWord({ a: [0, 1], b: [2, 3], c: [4, 5] }) => 'aabbcc'
  *    makeWord({ H:[0], e: [1], l: [2, 3, 8], o: [4, 6], W:[5], r:[7], d:[9]}) => 'HelloWorld'
  */
-function makeWord(/* lettersObject */) {
-  throw new Error('Not implemented');
+function makeWord(letters) {
+  return Object.entries(letters)
+    .reduce((acc, [k, v]) => {
+      v.forEach((j) => {
+        acc[j] = k;
+      });
+      return acc;
+    }, [])
+    .join('');
 }
 
 /**
@@ -221,8 +228,10 @@ function fromJSON(/* proto, json */) {
  *      { country: 'Russia',  city: 'Saint Petersburg' }
  *    ]
  */
-function sortCitiesArray(/* arr */) {
-  throw new Error('Not implemented');
+function sortCitiesArray(arr) {
+  return arr.sort(
+    (x, y) => x.country.localeCompare(y.country) || x.city.localeCompare(y.city)
+  );
 }
 
 /**
