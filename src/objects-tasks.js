@@ -350,33 +350,142 @@ function group(array, keySelector, valueSelector) {
  *  For more examples see unit tests.
  */
 
+class ElementSelector {
+  #elments = [];
+
+  #lastElement = '';
+
+  element(value) {
+    if (this.#lastElement === 'element') {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector!'
+      );
+    }
+
+    if (this.#lastElement) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element!'
+      );
+    }
+
+    this.#lastElement = 'element';
+    this.#elments.push(value);
+
+    return this;
+  }
+
+  id(value) {
+    if (this.#lastElement === 'id') {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+    if (this.#lastElement && this.#lastElement !== 'element') {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element!'
+      );
+    }
+    this.#lastElement = 'id';
+    this.#elments = [...this.#elments, `#${value}`];
+
+    return this;
+  }
+
+  class(value) {
+    if (
+      this.#lastElement === 'pseudoElement' ||
+      this.#lastElement === 'attribute' ||
+      this.#lastElement === 'pseudoClass'
+    ) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element!'
+      );
+    }
+    this.#lastElement = 'class';
+    this.#elments = [...this.#elments, `.${value}`];
+
+    return this;
+  }
+
+  attr(value) {
+    if (
+      this.#lastElement === 'pseudoElement' ||
+      this.#lastElement === 'pseudoClass'
+    ) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element!'
+      );
+    }
+    this.#lastElement = 'attribute';
+    this.#elments = [...this.#elments, `[${value}]`];
+
+    return this;
+  }
+
+  pseudoElement(value) {
+    if (this.#lastElement === 'pseudoElement') {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector!'
+      );
+    }
+
+    this.#lastElement = 'pseudoElement';
+    this.#elments = [...this.#elments, `::${value}`];
+
+    return this;
+  }
+
+  pseudoClass(value) {
+    if (this.#lastElement === 'pseudoElement') {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element!'
+      );
+    }
+
+    this.#lastElement = 'pseudoClass';
+    this.#elments = [...this.#elments, `:${value}`];
+
+    return this;
+  }
+
+  stringify() {
+    return this.#elments.join('');
+  }
+
+  combine(option, selector) {
+    this.#lastElement = selector.#lastElement;
+    this.#elments.push(option, ...selector.#elments);
+
+    return this;
+  }
+}
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    return new ElementSelector().element(value);
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    return new ElementSelector().id(value);
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    return new ElementSelector().class(value);
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    return new ElementSelector().attr(value);
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    return new ElementSelector().pseudoElement(value);
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    return new ElementSelector().pseudoClass(value);
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, option, selector2) {
+    return selector1.combine(` ${option} `, selector2);
   },
 };
 
